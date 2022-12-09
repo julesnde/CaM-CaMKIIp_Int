@@ -1,0 +1,41 @@
+#!/bin/bash -xvv
+#this now is a subscript controlled by the master script and is a job step
+#arg1 will be the icfile stuff..
+
+
+rundir=$TMPDIR/${SLURM_JOB_NAME}
+homedir=$1/${SLURM_JOB_NAME}
+#wellwidth=$(bc -l <<<"$2*0.01+0.01")
+wellwidth=0.1
+fmweight=0.1
+#fmweight=$(bc -l <<<"$3*0.001+0.001")
+temp=300.0
+rg0=${2}
+
+sed 's#COND#'CaM_CaMKIIp_Stab_${2}_${3}'#g' CaM_CaMKIIp_AAA_20_1.in |sed 's#TEMP#'$temp'#g' | sed 's#SEED#'$RANDOM'#g' |sed 's#RG0#'$rg0'#g' > CaM_CaMKIIp_AAA_${2}_${3}.in
+
+
+ssh $SLURMD_NODENAME
+
+if [ -d "$rundir" ]; then
+echo "$rundir exists"
+else
+mkdir $rundir
+cp -r *.dat ssweight para_* anti_* lmp_serial unbind_CaMp_restart_AAA.equil data.1cll_CaMKIIp data.1cll_CaMKIIp_AAA fix_backbone_coeff_20_1_AAA.data uniform.gamma *.mem CaM_CaMKIIp_AAA.seq $rundir/
+fi
+
+mkdir ${rundir}/CaM_CaMKIIp_Stab_${2}_${3}
+mv CaM_CaMKIIp_AAA_${2}_${3}.in ${rundir}/CaM_CaMKIIp_Stab_${2}_${3}
+
+cd $rundir
+#sed -i 's!/fraglib!./fraglib!g' old_fragsLAMW.mem
+./lmp_serial<CaM_CaMKIIp_Stab_${2}_${3}/CaM_CaMKIIp_AAA_${2}_${3}.in
+
+
+if [ -d "$homedir" ]; then
+echo "$homedir exists."
+else
+mkdir $homedir
+fi
+
+cp -r CaM_CaMKIIp_Stab_${2}_${3} $homedir/

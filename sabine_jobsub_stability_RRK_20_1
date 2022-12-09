@@ -1,0 +1,19 @@
+#!/bin/bash -vx
+#SBATCH -J CaM_CaMKIIp_US_RRK_20_1         # Job Name
+#SBATCH -t 216:00:00             # Run time (hh:mm:ss) - 96 hours
+#SBATCH -o CaM_CaMKIIp_Stab_rrk_%j.log
+#SBATCH -n 32         # total number of processors 
+#SBATCH -c 1
+
+homedir="/project/cheung/jndekeng/CaM_CaMKII_p"
+#for i in {0..9} 
+#do
+for n in $(seq 14.0 0.25 31.0)
+do
+for j in {1..5} #vary FM weight
+do
+srun -n 1 -N 1 sabine_jobrun_stability_RRK_20_1 $homedir $n $j &
+sleep 2
+done
+done
+wait
